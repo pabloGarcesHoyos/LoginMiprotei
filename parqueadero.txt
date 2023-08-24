@@ -1,0 +1,233 @@
+package co.uniquindio.edu.parqueadero.model;
+
+import java.util.Arrays;
+
+import co.uniquindio.edu.parqueadero.exceptions.VehiculoException;
+
+/**
+ * Clase parqueadero
+ * @author Admin
+ *
+ */
+public class Parqueadero {
+
+	//---------------------------------------------------------------------------
+	//ATRIBUTOS
+	//---------------------------------------------------------------------------
+	private String nombre;
+	private Puesto [][]listaPuestos;
+	private Vehiculo [] listaVehiculos;
+	private Propietario [] listaPropietarios;
+	private RegistroParqueo[] listaRegistroParqueo;
+
+	/**
+	 * Constructor de la clase parqueadero
+	 */
+	public Parqueadero(String nombre,int tamanioPuestos,int numVehiculos,int numPropietarios, int numRegistrosParqueo){
+		listaPuestos = new Puesto[tamanioPuestos][tamanioPuestos];
+		listaVehiculos = new Vehiculo[numVehiculos];
+		listaPropietarios = new Propietario[numPropietarios];
+		listaRegistroParqueo = new RegistroParqueo[numRegistrosParqueo];
+
+		this.nombre = nombre;
+
+		inicilializarPuestos();
+	}
+
+	private void inicilializarPuestos() {
+
+		int cont = 0;
+
+		for(int i=0; i<listaPuestos.length; i++)
+		{
+			for(int j=0; j<listaPuestos.length; j++)
+			{
+				if(i % 2 == 0)
+				{
+					listaPuestos[i][j] = new Puesto(""+cont,"Disponible",2000,TipoVehiculo.CARRO);
+				}
+				else
+				{
+					listaPuestos[i][j] = new Puesto(""+cont,"Disponible",1000,TipoVehiculo.MOTO);
+				}
+				cont++;
+			}
+		}
+	}
+
+
+	//---------------------------------------------------------------------------
+	//METODOS SET Y GET
+	//--------------------------------------------------------------------------
+
+
+	public Puesto[][] getListaPuestos() {
+		return listaPuestos;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public void setListaPuestos(Puesto[][] listaPuestos) {
+		this.listaPuestos = listaPuestos;
+	}
+
+
+
+	//-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+	//-----------------------------------------------------------------------------
+
+	public Vehiculo[] getListaVehiculos() {
+		return listaVehiculos;
+	}
+
+	public void setListaVehiculos(Vehiculo[] listaVehiculos) {
+		this.listaVehiculos = listaVehiculos;
+	}
+
+	public Propietario[] getListaPropietarios() {
+		return listaPropietarios;
+	}
+
+	public void setListaPropietarios(Propietario[] listaPropietarios) {
+		this.listaPropietarios = listaPropietarios;
+	}
+
+	public RegistroParqueo[] getListaRegistroParqueo() {
+		return listaRegistroParqueo;
+	}
+
+	public void setListaRegistroParqueo(RegistroParqueo[] listaRegistroParqueo) {
+		this.listaRegistroParqueo = listaRegistroParqueo;
+	}
+
+
+	public void imprimirPuestosPorTipoVehiculo(){
+
+
+		for (int i = 0; i < listaPuestos.length; i++) {
+			for (int j = 0; j < listaPuestos.length; j++) {
+
+				if(listaPuestos[i][j] != null){
+					System.out.print(listaPuestos[i][j].getTipoVehiculo().toString() + "	");
+				}
+
+			}
+			System.out.println();
+		}
+	}
+
+
+
+
+
+
+	@Override
+	public String toString() {
+		return "Parqueadero [listaPuestos=" + Arrays.toString(listaPuestos) + ", listaVehiculos=" + listaVehiculos
+				+ ", listaPropietarios=" + listaPropietarios + ", listaRegistroParqueo=" + listaRegistroParqueo + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((nombre == null) ? 0 : nombre.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Parqueadero other = (Parqueadero) obj;
+		if (nombre == null) {
+			if (other.nombre != null)
+				return false;
+		} else if (!nombre.equals(other.nombre))
+			return false;
+		return true;
+	}
+//-----------------------------------------------------------------------------------------------------------
+
+	public String crearVehiculo(String placa,String modelo,TipoVehiculo tipoVehiculo,String identificacionPropietario)throws VehiculoException {
+		String resultado 			= "";
+		Vehiculo vehiculoEncontrado = null;
+		int posDisponibleVehiculo 	= 0;
+		Propietario propietario 	= null;
+		// verificar si existe el vehiculo
+		vehiculoEncontrado = buscarVehiculo(placa);
+		if(vehiculoEncontrado == null){
+			// verificar si existe el propietario
+			propietario = obtenerPropietario(identificacionPropietario);
+			if(propietario == null){
+				throw new VehiculoException("NO existe un propietario para este vehiculo");
+			}
+			else{
+				posDisponibleVehiculo = obtenerPosicionDisponibleVehiculo();
+				if(posDisponibleVehiculo == -1){
+					throw new VehiculoException("No hay cupo para mas vehiculos");
+				}else{
+					vehiculoEncontrado = new Vehiculo(placa, modelo, tipoVehiculo, propietario);
+//					vehiculoEncontrado.setModelo(modelo);
+//					vehiculoEncontrado.setPlaca(placa);
+//					vehiculoEncontrado.setTipoVehiculo(tipoVehiculo);
+//					vehiculoEncontrado.setPropietario(propietario);
+					listaVehiculos[posDisponibleVehiculo] = vehiculoEncontrado;
+					resultado = "Vehiculo Registrado";
+				}
+			}
+		}else{
+			throw new VehiculoException("Este vehiculo ya se encunttra registrado");
+		}
+		return resultado;
+	}
+
+	private int obtenerPosicionDisponibleVehiculo() {
+
+		for (int i = 0; i < listaVehiculos.length; i++) {
+
+			if(listaVehiculos [i] == null){
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private Propietario obtenerPropietario(String identificacionPropietario) {
+
+		for (Propietario propietario : listaPropietarios) {
+			if(propietario != null && propietario.getIdentificacion().equals(identificacionPropietario)){
+				return propietario;
+			}
+		}
+		return null;
+	}
+
+	private Vehiculo buscarVehiculo(String placa) {
+
+		for (Vehiculo vehiculo : listaVehiculos) {
+			if(vehiculo != null && vehiculo.getPlaca().equals(placa)){
+				return vehiculo;
+			}
+		}
+
+		return null;
+	}
+}
